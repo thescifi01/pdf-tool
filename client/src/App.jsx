@@ -1,5 +1,6 @@
 import { useState } from "react";
-import "./App.css";
+import ToolCard from "./components/ToolCard";
+import "./index.css";
 
 const tools = [
   { name: "Image to PDF", api: "/api/image-to-pdf", accept: "image/*" },
@@ -19,9 +20,8 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e) => {
-    const input = e.target;
-    if (input.multiple) setFiles([...input.files]);
-    else setFile(input.files[0]);
+    if (e.target.multiple) setFiles([...e.target.files]);
+    else setFile(e.target.files[0]);
   };
 
   const handleSubmit = async () => {
@@ -42,69 +42,63 @@ function App() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       setOutputURL(url);
-      setLoading(false);
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      alert("Something went wrong!");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "auto", padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>📄 PDF Tool</h1>
-      <p>Select a tool:</p>
-      {tools.map((tool, i) => (
-        <button
-          key={i}
-          onClick={() => {
-            setSelectedTool(tool);
-            setFile(null);
-            setFiles([]);
-            setOutputURL(null);
-          }}
-          style={{
-            margin: "0.25rem",
-            padding: "0.5rem 1rem",
-            backgroundColor: selectedTool?.name === tool.name ? "#2d89ef" : "#ccc",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          ✅ {tool.name}
-        </button>
-      ))}
+    <div className="min-h-screen bg-gray-100 p-6 text-center font-sans">
+      <h1 className="text-4xl font-bold mb-6 text-blue-600">📄 PDF Tool</h1>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+        {tools.map((tool, i) => (
+          <ToolCard
+            key={i}
+            tool={tool}
+            active={selectedTool?.name === tool.name}
+            onClick={() => {
+              setSelectedTool(tool);
+              setFile(null);
+              setFiles([]);
+              setOutputURL(null);
+            }}
+          />
+        ))}
+      </div>
 
       {selectedTool && (
-        <>
-          <hr />
-          <h3>Upload file for: {selectedTool.name}</h3>
+        <div className="mt-6 p-6 bg-white rounded shadow-md">
+          <h2 className="text-xl font-semibold mb-2 text-gray-800">{selectedTool.name}</h2>
           <input
             type="file"
             onChange={handleFileChange}
             accept={selectedTool.accept}
             multiple={selectedTool.multiple}
+            className="mb-4 block mx-auto"
           />
-          <br />
           <button
             onClick={handleSubmit}
             disabled={loading}
-            style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            {loading ? "Processing..." : "Convert"}
+            {loading ? "Processing..." : "Upload & Convert"}
           </button>
-        </>
-      )}
 
-      {outputURL && (
-        <>
-          <hr />
-          <a href={outputURL} download style={{ color: "green", fontWeight: "bold" }}>
-            📥 Download Result
-          </a>
-        </>
+          {outputURL && (
+            <div className="mt-4">
+              <a
+                href={outputURL}
+                download
+                className="text-green-600 font-bold underline"
+              >
+                📥 Download Result
+              </a>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
